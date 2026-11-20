@@ -120,13 +120,6 @@ const scene = `
   <path d="M1012 825C1080 800 1198 806 1260 837" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>
   <path class="starfish" d="${starPath(372, 900, 46, 21)}" fill="#ff6b5e" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>
   <g class="kiko-spot" transform="translate(${KX} ${KY})">${kikoMarkup()}</g>
-  <g transform="translate(800 366)" pointer-events="none">
-    <g class="bubble">
-      <path d="M-170-76H170A34 34 0 0 1 204-42V10A34 34 0 0 1 170 44H34L0 82-24 44H-170A34 34 0 0 1-204 10V-42A34 34 0 0 1-170-76Z" fill="#fffdf7" stroke="${INK}" stroke-width="7" stroke-linejoin="round"/>
-      <text class="bubble-word" x="0" y="-12" text-anchor="middle"></text>
-      <text class="bubble-gloss" x="0" y="24" text-anchor="middle"></text>
-    </g>
-  </g>
 </svg>`;
 
 // Tagalog words Kiko says, with their English meaning underneath.
@@ -181,6 +174,7 @@ export function home(nav: Nav): Screen {
         <h1 class="title" data-text="Kiko’s Island">Kiko’s Island</h1>
         <button class="btn round sound" id="sound-toggle" aria-label="Sound on or off"></button>
       </header>
+      <div class="bubble" role="status"><b></b><span></span></div>
       <nav class="home-doors">
         <button class="door door-draw" id="open-studio">${icons.brush}<span>Draw<small>Gumuhit</small></span></button>
         <button class="door door-art" id="open-gallery">${icons.art}<span>My Art<small>Mga guhit ko</small></span></button>
@@ -220,12 +214,39 @@ export function home(nav: Nav): Screen {
   };
 
   // Speech bubble: a Tagalog word with its meaning.
-  const bubble = $<SVGGElement>(el, '.bubble');
+  const bubble = $(el, '.bubble');
+  const spot = $<SVGGElement>(el, '.kiko-spot');
   let greeting = 0;
   let bubbleTimer = 0;
+  /** Put the bubble above Kiko, or beside Kiko when the screen is too short for that. */
+  const placeBubble = () => {
+    const host = el.getBoundingClientRect();
+    const k = spot.getBoundingClientRect();
+    const t = $(el, '.title').getBoundingClientRect();
+    const w = bubble.offsetWidth;
+    const hgt = bubble.offsetHeight;
+    let side = 'above';
+    let left = k.left + k.width / 2 - w / 2;
+    let top = k.top - hgt - 16;
+    const hitsTitle = top < t.bottom + 4 && left < t.right && left + w > t.left;
+    if (top < host.top + 6 || hitsTitle) {
+      side = 'right';
+      left = k.right + 14;
+      top = Math.max(host.top + 8, k.top + k.height * 0.12);
+      if (left + w > host.right - 8) {
+        side = 'left';
+        left = k.left - w - 14;
+      }
+    }
+    left = Math.max(host.left + 8, Math.min(left, host.right - w - 8));
+    bubble.dataset.side = side;
+    bubble.style.left = `${left - host.left}px`;
+    bubble.style.top = `${top - host.top}px`;
+  };
   const say = ([word, meaning]: readonly [string, string]) => {
-    $(el, '.bubble-word').textContent = word;
-    $(el, '.bubble-gloss').textContent = meaning;
+    $(bubble, 'b').textContent = word;
+    $(bubble, 'span').textContent = meaning;
+    placeBubble();
     restart(bubble, 'show');
     window.clearTimeout(bubbleTimer);
     bubbleTimer = window.setTimeout(() => bubble.classList.remove('show'), 2600);

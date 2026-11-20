@@ -2,6 +2,7 @@ import './style.css';
 import { home } from './home';
 import { studio } from './studio';
 import { gallery } from './gallery';
+import { unlockAudio } from './audio';
 
 export interface Screen {
   el: HTMLElement;
@@ -24,4 +25,5 @@ const nav: Nav = (to, params) => {
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 document.addEventListener('dragstart', (e) => e.preventDefault());
 
+unlockAudio();
 nav('home');

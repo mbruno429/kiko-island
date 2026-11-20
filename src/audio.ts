@@ -32,6 +32,27 @@ function ac(): AudioContext | null {
   }
 }
 
+/**
+ * iPhones and iPads only allow sound once the page has been touched, and only count a
+ * finished tap for that. Call once at start-up; the first tap anywhere wakes the audio up.
+ */
+export function unlockAudio(): void {
+  const wake = () => {
+    const a = ac();
+    if (!a) return;
+    const src = a.createBufferSource();
+    src.buffer = a.createBuffer(1, 1, 22050);
+    src.connect(a.destination);
+    src.start(0);
+    if (a.state === 'running') {
+      document.removeEventListener('touchend', wake);
+      document.removeEventListener('click', wake);
+    }
+  };
+  document.addEventListener('touchend', wake);
+  document.addEventListener('click', wake);
+}
+
 interface Tone {
   from: number;
   to?: number;

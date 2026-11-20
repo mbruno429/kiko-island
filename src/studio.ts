@@ -42,7 +42,9 @@ export function studio(nav: Nav, params: { artId?: string } = {}): Screen {
   const el = h(`
     <div class="screen studio">
       <aside class="rail rail-left">
-        <button class="btn round" id="studio-home" aria-label="Home">${icons.home}</button>
+        <div class="g g-nav">
+          <button class="btn round" id="studio-home" aria-label="Home">${icons.home}</button>
+        </div>
         <div class="swatches">
           ${COLORS.map((c, i) => `<button class="swatch" data-color="${c}" style="--c:${c === 'rainbow' ? 'transparent' : c}" aria-label="${COLOR_NAMES[i]}"></button>`).join('')}
         </div>
@@ -54,16 +56,24 @@ export function studio(nav: Nav, params: { artId?: string } = {}): Screen {
         </div>
       </div>
       <aside class="rail rail-right">
-        ${[14, 26, 42].map((d, i) => `<button class="btn round size" data-size="${i}" aria-label="${['Small', 'Medium', 'Big'][i]} size"><i style="width:${d}px;height:${d}px"></i></button>`).join('')}
-        <button class="btn round" id="undo" aria-label="Undo">${icons.undo}</button>
-        <button class="btn round" id="pages" aria-label="Colouring pages">${icons.pages}</button>
-        <button class="btn round" id="trash" aria-label="Start a new picture">${icons.trash}</button>
-        <button class="btn round save" id="save" aria-label="Save to My Art">${icons.save}</button>
+        <div class="g g-sizes">
+          ${[14, 26, 42].map((d, i) => `<button class="btn round size" data-size="${i}" aria-label="${['Small', 'Medium', 'Big'][i]} size"><i style="width:${d / 76 * 100}%;height:${d / 76 * 100}%"></i></button>`).join('')}
+        </div>
+        <div class="g g-actions">
+          <button class="btn round" id="undo" aria-label="Undo">${icons.undo}</button>
+          <button class="btn round" id="pages" aria-label="Colouring pages">${icons.pages}</button>
+          <button class="btn round" id="trash" aria-label="Start a new picture">${icons.trash}</button>
+          <button class="btn round save" id="save" aria-label="Save to My Art">${icons.save}</button>
+        </div>
       </aside>
       <div class="tray">
-        <button class="btn round tool" data-tool="brush" aria-label="Paintbrush">${icons.brush}</button>
-        <button class="btn round tool" data-tool="eraser" aria-label="Eraser">${icons.eraser}</button>
-        ${STAMPS.map((s) => `<button class="btn round tool stamp" data-tool="${s}" aria-label="${s} stamp"></button>`).join('')}
+        <div class="g g-tools">
+          <button class="btn round tool" data-tool="brush" aria-label="Paintbrush">${icons.brush}</button>
+          <button class="btn round tool" data-tool="eraser" aria-label="Eraser">${icons.eraser}</button>
+        </div>
+        <div class="g g-stamps">
+          ${STAMPS.map((s) => `<button class="btn round tool stamp" data-tool="${s}" aria-label="${s} stamp"></button>`).join('')}
+        </div>
       </div>
     </div>`);
 
