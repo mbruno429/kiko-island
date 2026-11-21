@@ -128,9 +128,16 @@ export function studio(nav: Nav, params: { artId?: string } = {}): Screen {
   };
 
   // --- saving ---
+  let draftSeq = 0;
   const saveDraft = async () => {
     window.clearTimeout(draftTimer);
-    const paint = hasPaint ? await blobOf(canvas) : null;
+    const seq = ++draftSeq;
+    const painted = hasPaint;
+    const paint = painted ? await blobOf(canvas) : null;
+    // A newer save has started and carries the latest picture: let that one win.
+    if (seq !== draftSeq) return;
+    // If the picture could not be encoded, keep the previous draft rather than blank it.
+    if (painted && !paint) return;
     await setDraft({ page, paint, artId });
   };
   const queueDraft = () => {
@@ -192,7 +199,11 @@ export function studio(nav: Nav, params: { artId?: string } = {}): Screen {
         <p class="banner">Ang galing!<small>Saved to My Art</small></p>
       </div>`);
     $(o, '.frame').appendChild(picture);
-    const close = () => o.remove();
+    const close = () => {
+      o.remove();
+      // Hand the picture's memory straight back: iPhones cap how much canvas a page may hold.
+      picture.width = picture.height = 0;
+    };
     o.addEventListener('pointerdown', close);
     window.setTimeout(close, 2600);
     el.appendChild(o);
@@ -372,6 +383,8 @@ export function studio(nav: Nav, params: { artId?: string } = {}): Screen {
     if (document.visibilityState === 'hidden') void saveDraft();
   };
   document.addEventListener('visibilitychange', onHide);
+  const onLeave = () => void saveDraft();
+  window.addEventListener('pagehide', onLeave);
 
   // --- restore: nothing a child drew is ever lost by leaving the studio ---
   const restore = async () => {
@@ -392,6 +405,7 @@ export function studio(nav: Nav, params: { artId?: string } = {}): Screen {
         }
         const old = draft.artId ? await getArt(draft.artId) : undefined;
         await putArt({ id: draft.artId ?? newId(), created: old?.created ?? Date.now(), page: draft.page, paint: draft.paint, full: (await blobOf(scratch)) ?? draft.paint });
+        scratch.width = scratch.height = 0;
       }
       setPage(opening.page);
       artId = opening.id;
@@ -418,6 +432,7 @@ export function studio(nav: Nav, params: { artId?: string } = {}): Screen {
       alive = false;
       ro.disconnect();
       document.removeEventListener('visibilitychange', onHide);
+      window.removeEventListener('pagehide', onLeave);
       void saveDraft();
     },
   };
