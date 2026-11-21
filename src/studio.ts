@@ -19,7 +19,15 @@ type Tool = 'brush' | 'eraser' | StampId;
 interface Pt { x: number; y: number }
 interface Stroke { last: Pt; mid: Pt; lastStamp: Pt }
 
-const blobOf = (cv: HTMLCanvasElement) => new Promise<Blob | null>((res) => cv.toBlob(res, 'image/png'));
+/** Encode a canvas as a PNG. Resolves to null when the browser refuses, so callers can fall back. */
+const blobOf = (cv: HTMLCanvasElement) =>
+  new Promise<Blob | null>((res) => {
+    try {
+      cv.toBlob(res, 'image/png');
+    } catch {
+      res(null);
+    }
+  });
 
 function drawBlob(c: CanvasRenderingContext2D, blob: Blob): Promise<void> {
   return new Promise((resolve) => {

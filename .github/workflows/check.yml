@@ -1,0 +1,77 @@
+name: Check and publish
+
+# GitHub Pages serves this site straight from the main branch, using the built index.html
+# committed at the repo root. This workflow rebuilds from src/ and fails if that committed
+# page is stale. If Pages is ever switched to the "GitHub Actions" source, the publish job
+# takes over and deploys the fresh build instead, so the site works either way.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Build and check the published page
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
+    outputs:
+      pages_source: ${{ steps.pages.outputs.source }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: index.html at the repo root matches the source
+        run: |
+          if ! git diff --quiet -- index.html; then
+            echo "::error file=index.html::index.html is out of date. Run 'npm run build' and commit the result."
+            exit 1
+          fi
+      - name: Find out how GitHub Pages is set up
+        id: pages
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ! source=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq .build_type 2>/dev/null); then
+            source=unknown
+          fi
+          case "$source" in
+            legacy | workflow) ;;
+            *) source=unknown ;;
+          esac
+          echo "GitHub Pages source: $source"
+          echo "source=$source" >> "$GITHUB_OUTPUT"
+      - name: Package the site
+        if: steps.pages.outputs.source == 'workflow'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  publish:
+    name: Publish (only when Pages uses the GitHub Actions source)
+    needs: check
+    if: needs.check.outputs.pages_source == 'workflow'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

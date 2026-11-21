@@ -1,0 +1,2 @@
+# The root index.html is build output (see scripts/postbuild.mjs).
+/index.html linguist-generated=true
