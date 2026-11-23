@@ -1,5 +1,6 @@
 import { $, h, icons, INK } from './ui';
 import { isMuted, setMuted, sfx } from './audio';
+import { hush, speak } from './voice';
 import { KIKO_EYES, kikoMarkup, kikoTrick } from './kiko';
 import type { Nav, Screen } from './main';
 
@@ -123,25 +124,34 @@ const scene = `
 </svg>`;
 
 // Tagalog words Kiko says, with their English meaning underneath.
-const GREETINGS: Array<[string, string]> = [
-  ['Kumusta!', 'hello'],
-  ['Mabuhay!', 'welcome'],
-  ['Salamat!', 'thank you'],
-  ['Maganda!', 'beautiful'],
-  ['Magaling!', 'well done'],
+interface Word {
+  /** What the speech bubble shows. */
+  text: string;
+  meaning: string;
+  /** The spoken clip: src/voice/<voice>.mp3 */
+  voice: string;
+}
+const GREETINGS: Word[] = [
+  { text: 'Kumusta!', meaning: 'hello', voice: 'kumusta' },
+  { text: 'Mabuhay!', meaning: 'welcome', voice: 'mabuhay' },
+  { text: 'Salamat!', meaning: 'thank you', voice: 'salamat' },
+  { text: 'Maganda!', meaning: 'beautiful', voice: 'maganda' },
+  { text: 'Magaling!', meaning: 'well done', voice: 'magaling' },
 ];
-// The Tagalog name of each thing on the island, shown when it is tapped.
-const NAMES = {
-  araw: ['Araw', 'sun'],
-  ulap: ['Ulap', 'cloud'],
-  niyog: ['Niyog', 'coconut'],
-  isda: ['Isda', 'fish'],
-  bituin: ['Bituin', 'star'],
-  bangka: ['Bangka', 'boat'],
-  kubo: ['Bahay kubo', 'nipa hut'],
-  bulaklak: ['Bulaklak', 'flower'],
-  bulkan: ['Bulkan', 'volcano'],
-} as const;
+// The Tagalog name of each thing on the island, shown and spoken when it is tapped.
+const NAMES: Record<string, Word> = {
+  araw: { text: 'Araw', meaning: 'sun', voice: 'araw' },
+  ulap: { text: 'Ulap', meaning: 'cloud', voice: 'ulap' },
+  niyog: { text: 'Niyog', meaning: 'coconut', voice: 'niyog' },
+  isda: { text: 'Isda', meaning: 'fish', voice: 'isda' },
+  bituin: { text: 'Bituin', meaning: 'star', voice: 'bituin' },
+  bangka: { text: 'Bangka', meaning: 'boat', voice: 'bangka' },
+  kubo: { text: 'Bahay kubo', meaning: 'nipa hut', voice: 'bahay-kubo' },
+  bulaklak: { text: 'Bulaklak', meaning: 'flower', voice: 'bulaklak' },
+  bulkan: { text: 'Bulkan', meaning: 'volcano', voice: 'bulkan' },
+};
+/** Pause (ms) between a tap's sound effect starting and the word being spoken. */
+const AFTER_SOUND = 280;
 
 function starPath(cx: number, cy: number, outer: number, inner: number): string {
   let d = '';
@@ -216,7 +226,7 @@ export function home(nav: Nav): Screen {
   // Speech bubble: a Tagalog word with its meaning.
   const bubble = $(el, '.bubble');
   const spot = $<SVGGElement>(el, '.kiko-spot');
-  let greeting = 0;
+  let greeting = -1;
   let bubbleTimer = 0;
   /** Put the bubble above Kiko, or beside Kiko when the screen is too short for that. */
   const placeBubble = () => {
@@ -243,40 +253,48 @@ export function home(nav: Nav): Screen {
     bubble.style.left = `${left - host.left}px`;
     bubble.style.top = `${top - host.top}px`;
   };
-  const say = ([word, meaning]: readonly [string, string]) => {
-    $(bubble, 'b').textContent = word;
-    $(bubble, 'span').textContent = meaning;
+  const show = (word: Word) => {
+    $(bubble, 'b').textContent = word.text;
+    $(bubble, 'span').textContent = word.meaning;
     placeBubble();
     restart(bubble, 'show');
     window.clearTimeout(bubbleTimer);
     bubbleTimer = window.setTimeout(() => bubble.classList.remove('show'), 2600);
   };
+  /** Show a word in Kiko's bubble and say it out loud, once the tap's own sound has had its moment. */
+  const say = (word: Word, afterSound = AFTER_SOUND) => {
+    show(word);
+    speak(word.voice, afterSound);
+  };
   /** Tapping a thing plays its little animation and sound, and Kiko says its name. */
-  const toy = (sel: string, name: readonly [string, string] | null, sound: () => void, target?: string) =>
+  const toy = (sel: string, name: Word | null, sound: () => void, target?: string, afterSound?: number) =>
     el.querySelectorAll(sel).forEach((node) =>
       node.addEventListener('pointerdown', () => {
         restart(target ? $(node, target) : node, 'go');
         sound();
-        if (name) say(name);
+        if (name) say(name, afterSound);
       }),
     );
 
+  // The first tap on Kiko says the greeting already in the bubble; later taps move on.
   kiko.addEventListener('pointerdown', () => {
     kikoTrick(kiko);
     sfx.giggle();
     greeting = (greeting + 1) % GREETINGS.length;
-    say(GREETINGS[greeting]);
+    say(GREETINGS[greeting], 560);
   });
   toy('.sun', NAMES.araw, () => sfx.boop(12), '.sun-spin');
   toy('.cloud', NAMES.ulap, () => sfx.pop(), '.puff');
-  toy('.palm', NAMES.niyog, () => window.setTimeout(() => sfx.bonk(), 420));
+  // The coconut lands with a bonk at 420 ms, so its name waits for that.
+  toy('.palm', NAMES.niyog, () => window.setTimeout(() => sfx.bonk(), 420), undefined, 660);
   toy('.starfish', NAMES.bituin, () => sfx.boop(7));
   toy('.saucer', null, () => sfx.beep());
   toy('.kubo', NAMES.kubo, () => sfx.boop(4));
   toy('.bangka', NAMES.bangka, () => sfx.splash());
   toy('.gumamela', NAMES.bulaklak, () => sfx.boop(9));
   toy('.bulkan', NAMES.bulkan, () => sfx.whoosh(), '.smoke');
-  const hello = window.setTimeout(() => say(GREETINGS[0]), 700);
+  // Browsers only allow sound after a tap, so the greeting on arrival is shown, not spoken.
+  const hello = window.setTimeout(() => show(GREETINGS[0]), 700);
 
   $(el, '.sea').addEventListener('pointerdown', (e) => {
     const p = toSvg(e as PointerEvent);
@@ -301,6 +319,7 @@ export function home(nav: Nav): Screen {
   paintSound();
   sound.addEventListener('click', () => {
     setMuted(!isMuted());
+    if (isMuted()) hush();
     paintSound();
     sfx.pop();
   });

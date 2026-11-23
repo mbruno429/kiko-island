@@ -6,7 +6,7 @@ blue, four-armed alien living on a Filipino island who teaches Tagalog words.
 ## What's in it so far
 
 - **Home island** – tap Kiko, the sun, the bahay kubo, the bangka and more. Each
-  one reacts, and Kiko says its Tagalog name.
+  one reacts, and its Tagalog name is shown and spoken.
 - **Drawing studio** – colours, a rainbow brush, stamps, undo and colouring pages.
 - **My Art** – a gallery of saved pictures, kept on the device.
 
@@ -39,6 +39,28 @@ This type-checks, then writes one self-contained page that works offline:
 
 Pushing to `main` updates the public page within a minute or so.
 
+## Spoken words
+
+Tapping something on the home island says its Tagalog name. The clips are in
+`src/voice/`, one MP3 per word, named after the `voice` id in `src/home.ts`. They are
+built into the page, so speech works offline.
+
+`scripts/make-voice.sh` makes them with the eSpeak NG synthesizer (it needs `espeak-ng`
+and `ffmpeg`). eSpeak NG has no Tagalog voice, so each word is written out as sounds
+with its Tagalog stress; the comments in the script explain the notation. To add or
+change a word, edit the list at the bottom of the script, then:
+
+```bash
+bash scripts/make-voice.sh
+```
+
+```bash
+npm run build
+```
+
+To use a real recording for a word instead, replace its MP3 in `src/voice/` with a
+short, trimmed, mono clip and rebuild.
+
 ## Layout
 
 - `src/index.html` – the page shell
@@ -47,4 +69,6 @@ Pushing to `main` updates the public page within a minute or so.
 - `src/studio.ts`, `src/stamps.ts`, `src/pages.ts` – drawing studio, stamps, colouring pages
 - `src/gallery.ts`, `src/store.ts` – saved pictures (IndexedDB)
 - `src/audio.ts` – synthesised sound effects
+- `src/voice.ts`, `src/voice/` – the spoken Tagalog words
 - `scripts/postbuild.mjs` – copies the build to the repo root and makes a preview fragment
+- `scripts/make-voice.sh` – generates the spoken-word clips

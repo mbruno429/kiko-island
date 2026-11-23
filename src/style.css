@@ -312,6 +312,11 @@ button {
 @keyframes puff {
   40% { transform: scale(1.3, 1.2); }
 }
+/* Wave lines and jumping fish are decoration: taps pass through them to the sea. */
+.waves,
+.fx-sea {
+  pointer-events: none;
+}
 .wave {
   animation: sway 3.6s ease-in-out infinite alternate;
 }

@@ -1,4 +1,4 @@
-// All sound is synthesised, so the app ships no audio files and works offline.
+// Sound effects are synthesised here. The spoken Tagalog words are clips: see voice.ts.
 type Ctor = typeof AudioContext;
 let ctx: AudioContext | null = null;
 let muted = false;
@@ -16,6 +16,11 @@ export function setMuted(m: boolean): void {
   } catch {
     /* ignore */
   }
+}
+
+/** The shared audio context, or null while sound is switched off or unavailable. */
+export function audioContext(): AudioContext | null {
+  return ac();
 }
 
 function ac(): AudioContext | null {
@@ -36,10 +41,15 @@ function ac(): AudioContext | null {
  * iPhones and iPads only allow sound once the page has been touched, and only count a
  * finished tap for that. Call once at start-up; the first tap anywhere wakes the audio up.
  */
-export function unlockAudio(): void {
+export function unlockAudio(onAwake?: () => void): void {
+  let told = false;
   const wake = () => {
     const a = ac();
     if (!a) return;
+    if (!told) {
+      told = true;
+      onAwake?.();
+    }
     const src = a.createBufferSource();
     src.buffer = a.createBuffer(1, 1, 22050);
     src.connect(a.destination);
