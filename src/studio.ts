@@ -1,5 +1,6 @@
 import { $, h, icons } from './ui';
 import { sfx } from './audio';
+import { speak } from './voice';
 import { kikoSvg } from './kiko';
 import { PAGE_IDS, PAPER_H as H, PAPER_W as W, pageImage, pageUrl } from './pages';
 import { drawStamp, stampIcon, STAMPS, type StampId } from './stamps';
@@ -208,6 +209,7 @@ export function studio(nav: Nav, params: { artId?: string } = {}): Screen {
     window.setTimeout(close, 2600);
     el.appendChild(o);
     sfx.fanfare();
+    speak('ang-galing', 950); // after the fanfare
   };
 
   // --- drawing ---

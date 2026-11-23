@@ -326,10 +326,12 @@ export function home(nav: Nav): Screen {
 
   $(el, '#open-studio').addEventListener('click', () => {
     sfx.pop();
+    speak('gumuhit', 120);
     nav('studio');
   });
   $(el, '#open-gallery').addEventListener('click', () => {
     sfx.pop();
+    speak('mga-guhit-ko', 120);
     nav('gallery');
   });
 

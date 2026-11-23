@@ -45,21 +45,13 @@ Tapping something on the home island says its Tagalog name. The clips are in
 `src/voice/`, one MP3 per word, named after the `voice` id in `src/home.ts`. They are
 built into the page, so speech works offline.
 
-`scripts/make-voice.sh` makes them with the eSpeak NG synthesizer (it needs `espeak-ng`
-and `ffmpeg`). eSpeak NG has no Tagalog voice, so each word is written out as sounds
-with its Tagalog stress; the comments in the script explain the notation. To add or
-change a word, edit the list at the bottom of the script, then:
+The clips are the family's own recordings, cut from one voice memo, cleaned up and
+levelled with ffmpeg. To replace or add a word, put a short, trimmed, mono MP3 in
+`src/voice/` and run `npm run build`.
 
-```bash
-bash scripts/make-voice.sh
-```
-
-```bash
-npm run build
-```
-
-To use a real recording for a word instead, replace its MP3 in `src/voice/` with a
-short, trimmed, mono clip and rebuild.
+`scripts/make-voice.sh` is a fallback that generates robot-voice clips for the 14 island
+words with the eSpeak NG synthesizer (it needs `espeak-ng` and `ffmpeg`). Running it
+overwrites those recordings.
 
 ## Layout
 
