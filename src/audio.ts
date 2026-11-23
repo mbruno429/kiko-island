@@ -28,6 +28,17 @@ function ac(): AudioContext | null {
   try {
     if (!ctx) {
       const C: Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: Ctor }).webkitAudioContext;
+      // iPhones mute web page sound when the ring/silent switch is on silent. Asking for the
+      // "playback" kind of audio (as music and video apps do) lets it play anyway; the
+      // sound button in the app is then the way to make it quiet.
+      const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+      if (session) {
+        try {
+          session.type = 'playback';
+        } catch {
+          /* older iPhones: sound follows the silent switch */
+        }
+      }
       ctx = new C();
     }
     if (ctx.state === 'suspended') void ctx.resume();
