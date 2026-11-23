@@ -8,7 +8,7 @@ const KX = 650;
 const KY = 448;
 
 const palm = (x: number, y: number, flip: boolean, scale: number) => `
-  <g class="palm" transform="translate(${x} ${y}) scale(${flip ? -scale : scale} ${scale})" stroke-linecap="round" stroke-linejoin="round">
+  <g class="palm ${flip ? 'palm-right' : 'palm-left'}" transform="translate(${x} ${y}) scale(${flip ? -scale : scale} ${scale})" stroke-linecap="round" stroke-linejoin="round">
     <path d="M0 0C20-130-10-270-60-380" stroke="${INK}" stroke-width="58" fill="none"/>
     <path d="M0 0C20-130-10-270-60-380" stroke="#c98a4b" stroke-width="44" fill="none"/>
     <path d="M0 0C20-130-10-270-60-380" stroke="#a36a30" stroke-width="44" stroke-dasharray="5 44" stroke-linecap="butt" fill="none"/>
@@ -24,8 +24,8 @@ const palm = (x: number, y: number, flip: boolean, scale: number) => `
   </g>`;
 
 /** Gumamela, the red hibiscus. */
-const gumamela = (x: number, y: number, scale: number) => `
-  <g transform="translate(${x} ${y}) scale(${scale})">
+const gumamela = (x: number, y: number, scale: number, where: string) => `
+  <g class="at-flower-${where}" transform="translate(${x} ${y}) scale(${scale})">
     <g class="gumamela" stroke="${INK}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
       <path d="M0 0C-8-44-52-74-96-78C-62-50-30-30 0 0Z" fill="#34b866"/>
       <path d="M0 0C8-44 52-74 96-78C62-50 30-30 0 0Z" fill="#2a9d58"/>
@@ -76,7 +76,7 @@ const scene = `
     <path class="wave w2" d="M420 690q26-22 52 0t52 0"/><path class="wave" d="M1420 730q26-22 52 0t52 0"/>
     <path class="wave" d="M-120 760q26-22 52 0t52 0"/><path class="wave w2" d="M930 610q26-22 52 0t52 0"/>
   </g>
-  <g transform="translate(1068 628) scale(1.1)">
+  <g class="at-bangka" transform="translate(1068 628) scale(1.1)">
     <g class="bangka" stroke="${INK}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
       <path d="M0-8V-110" fill="none"/>
       <path d="M0 -104.0L12 -102.0L12 -17.0L0 -16.0Z" fill="#e8334a" stroke="none"/><path d="M12 -102.0L24 -100.0L24 -18.0L12 -17.0Z" fill="#ffd23f" stroke="none"/><path d="M24 -100.0L36 -98.0L36 -19.0L24 -18.0Z" fill="#3ecf6e" stroke="none"/><path d="M36 -98.0L48 -96.0L48 -20.0L36 -19.0Z" fill="#3d8bff" stroke="none"/>
@@ -91,8 +91,9 @@ const scene = `
   ${palm(300, 840, false, 1)}
   ${palm(1345, 850, true, 0.82)}
   <path d="M-420 1100C-100 780 500 700 800 700C1100 700 1700 780 2020 1100Z" fill="url(#sand)" stroke="${INK}" stroke-width="8"/>
+  <rect x="-420" y="1090" width="2440" height="500" fill="#f4b860"/>
   <g fill="#f0a94e" opacity=".7"><circle cx="980" cy="760" r="6"/><circle cx="300" cy="900" r="6"/><circle cx="1240" cy="850" r="7"/><circle cx="760" cy="930" r="6"/></g>
-  <g transform="translate(494 800) scale(0.9)">
+  <g class="at-kubo" transform="translate(494 800) scale(0.9)">
     <g class="kubo" stroke="${INK}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
       <g fill="#d9b25a" stroke-width="5">
         <rect x="-98" y="-66" width="13" height="66"/><rect x="-36" y="-66" width="13" height="66"/><rect x="26" y="-66" width="13" height="66"/><rect x="88" y="-66" width="13" height="66"/>
@@ -111,7 +112,7 @@ const scene = `
       </g>
     </g>
   </g>
-  ${gumamela(168, 940, 1)}${gumamela(1452, 962, 0.86)}
+  ${gumamela(168, 940, 1, 'left')}${gumamela(1452, 962, 0.86, 'right')}
   <g class="saucer" transform="translate(1130 792) rotate(-13)" stroke="${INK}" stroke-width="7" stroke-linejoin="round">
     <path d="M-52-14C-52-78 52-78 52-14Z" fill="#a8ecff"/>
     <ellipse cx="0" cy="0" rx="118" ry="36" fill="#cfd6ea"/>
@@ -192,6 +193,12 @@ export function home(nav: Nav): Screen {
     </div>`);
 
   const svg = $<SVGSVGElement>(el, '.scene');
+  // Upright phones are too narrow for the whole island, so the scene zooms out a little and
+  // the things on it move closer together (the moves are in style.css, under "upright").
+  const upright = window.matchMedia('(max-aspect-ratio: 1/1)');
+  const frame = () => svg.setAttribute('viewBox', upright.matches ? '350 -250 900 1400' : '0 0 1600 1000');
+  frame();
+  upright.addEventListener('change', frame);
   const kiko = $<SVGGElement>(el, '.kiko');
   const fx = $<SVGGElement>(el, '.fx-sea');
 
@@ -338,6 +345,7 @@ export function home(nav: Nav): Screen {
   return {
     el,
     destroy() {
+      upright.removeEventListener('change', frame);
       window.clearTimeout(hello);
       window.clearTimeout(bubbleTimer);
     },

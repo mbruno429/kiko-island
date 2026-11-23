@@ -30,6 +30,7 @@
   --pandan: #ecd6a4;
   /* A banig (woven mat) tile: a woven check with diagonal bands of colour. */
   --banig: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Crect x='0' y='0' width='40' height='40' fill='%23d6408f' fill-opacity='.3'/%3E%3Cpath d='M0 10h40M0 20h40M0 30h40' stroke='%238a6a3a' stroke-opacity='.3' stroke-width='2' fill='none'/%3E%3Cpath d='M10 40v40M20 40v40M30 40v40' stroke='%238a6a3a' stroke-opacity='.3' stroke-width='2' fill='none'/%3E%3Crect x='0' y='80' width='40' height='40' fill='%232fa36b' fill-opacity='.3'/%3E%3Cpath d='M0 90h40M0 100h40M0 110h40' stroke='%238a6a3a' stroke-opacity='.3' stroke-width='2' fill='none'/%3E%3Cpath d='M50 0v40M60 0v40M70 0v40' stroke='%238a6a3a' stroke-opacity='.3' stroke-width='2' fill='none'/%3E%3Crect x='40' y='40' width='40' height='40' fill='%232fa36b' fill-opacity='.3'/%3E%3Cpath d='M40 50h40M40 60h40M40 70h40' stroke='%238a6a3a' stroke-opacity='.3' stroke-width='2' fill='none'/%3E%3Crect x='40' y='80' width='40' height='40' fill='%23d6408f' fill-opacity='.3'/%3E%3Cpath d='M50 80v40M60 80v40M70 80v40' stroke='%238a6a3a' stroke-opacity='.3' stroke-width='2' fill='none'/%3E%3Crect x='80' y='0' width='40' height='40' fill='%232fa36b' fill-opacity='.3'/%3E%3Cpath d='M80 10h40M80 20h40M80 30h40' stroke='%238a6a3a' stroke-opacity='.3' stroke-width='2' fill='none'/%3E%3Crect x='80' y='40' width='40' height='40' fill='%23d6408f' fill-opacity='.3'/%3E%3Cpath d='M90 40v40M100 40v40M110 40v40' stroke='%238a6a3a' stroke-opacity='.3' stroke-width='2' fill='none'/%3E%3Cpath d='M80 90h40M80 100h40M80 110h40' stroke='%238a6a3a' stroke-opacity='.3' stroke-width='2' fill='none'/%3E%3Cpath d='M0 0h120M0 40h120M0 80h120M0 0v120M40 0v120M80 0v120' stroke='%238a6a3a' stroke-opacity='.35' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+  --pink: #ff9ecf;
   --veil: rgba(43, 31, 77, 0.6);
   --font-display: 'Fredoka Variable', 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif;
   --gutter-l: max(16px, env(safe-area-inset-left, 0px));
@@ -922,6 +923,19 @@ button {
   align-items: center;
   justify-content: center;
   gap: 16px 22px;
+}
+
+/* ---------- upright: the island's things move in so they all fit a narrow screen ---------- */
+@media (max-aspect-ratio: 1/1) {
+  .scene .sun { translate: -250px -200px; }
+  .scene .bulkan { translate: -110px 0; }
+  .scene .palm-left { translate: 150px 0; }
+  .scene .palm-right { translate: -190px 0; }
+  .scene .at-flower-left { translate: 270px -60px; }
+  .scene .at-flower-right { translate: -480px 30px; }
+  .scene .starfish { translate: 190px -40px; }
+  .scene .at-kubo { translate: -10px 0; }
+  .home-doors { padding-bottom: 16px; }
 }
 
 /* ---------- a phone on its side: short and wide ---------- */
